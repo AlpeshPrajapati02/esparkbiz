@@ -34,7 +34,6 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "app_has_category",
-      paranoid: true,
     }
   );
   return app_has_category;

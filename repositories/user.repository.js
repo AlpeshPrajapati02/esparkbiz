@@ -1,5 +1,5 @@
 const db = require("../models/index");
-const { user, profile } = db;
+const { user, profile, rating_and_review } = db;
 
 const getUser = async (email) => {
   try {
@@ -57,11 +57,45 @@ const createProfile = async (profilePayload) => {
 
 const getProfileById = async (id) => {
   try {
-    let profilePicture = await profile.findByPk(id, { where: { is_active: 1 } });
+    let profilePicture = await profile.findByPk(id, {
+      where: { is_active: 1 },
+    });
 
     return profilePicture;
   } catch (error) {
     console.error("Error creating profile:", error);
+    throw error;
+  }
+};
+
+const createRatingReview = async (details) => {
+  try {
+    const ratingReview = await rating_and_review.create(details);
+
+    return ratingReview;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const findRatingReviews = async (appId) => {
+  try {
+    const ratingReviews = await rating_and_review.findAll({
+      where: { app_id: appId },
+    });
+
+    return ratingReviews;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const findReviewById = async (reviewId) => {
+  try {
+    const ratingReviews = await rating_and_review.findByPk(reviewId);
+
+    return ratingReviews;
+  } catch (error) {
     throw error;
   }
 };
@@ -72,4 +106,7 @@ module.exports = {
   createProfile,
   getUserById,
   getProfileById,
+  createRatingReview,
+  findRatingReviews,
+  findReviewById,
 };

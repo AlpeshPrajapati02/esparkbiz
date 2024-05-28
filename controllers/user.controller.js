@@ -5,8 +5,12 @@ const {
   getUser,
   getUserById,
   getProfileById,
+  createRatingReview,
+  findRatingReviews,
+  findReviewById,
 } = require("../repositories/user.repository");
 const JWT = require("jsonwebtoken");
+const { findAppById } = require("../repositories/app.repository");
 require("dotenv").config();
 
 exports.user = async (req, res) => {
@@ -167,36 +171,68 @@ exports.getUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    let {fname,lname} = req.body;
+    let { fname, lname } = req.body;
     let id = req.user.id;
     let profile = req.file;
 
     let user = await getUserById(id);
 
-    if(!user){
+    if (!user) {
       return res.status(400).json({
-        success:false,
-        message:"user not found"
-      })
+        success: false,
+        message: "user not found",
+      });
     }
 
-    await user.update({fname:fname,lname:lname});
+    await user.update({ fname: fname, lname: lname });
     let profilePicture = await getProfileById(id);
-    
-    if(profile && profile.filename){
-      await profilePicture.update({is_active:0});
+
+    if (profile && profile.filename) {
+      await profilePicture.update({ is_active: 0 });
       await createProfile({
         filename: profile.filename,
         path: profile.path,
         user_id: id,
-      })
+      });
     }
 
     user = await getUserById(id);
 
     return res.json({
+      success: true,
+      user: user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.ratingAndReview = async (req, res) => {
+  try {
+    let { rating, review } = req.body;
+    let userId = req.user.id;
+    let appId = req.params.id;
+
+    if (!rating || !review) {
+      return res.json({
+        success: false,
+        message: "all fields required",
+      });
+    }
+
+    const ratingReview = await createRatingReview({
+      rating,
+      review,
+      user_id: userId,
+      app_id: appId,
+    });
+
+    return res.json({
       success:true,
-      user:user
+      message:ratingReview
     })
 
   } catch (error) {
@@ -206,3 +242,70 @@ exports.updateUser = async (req, res) => {
     });
   }
 };
+
+exports.getAllReviewOfApp = async(req,res)=>{
+  try {
+    let appId = req.params.id;
+
+    const app = await findAppById(appId);
+
+    if(!app){
+      return res.json({
+        success:false,
+        message:"app not found"
+      })
+    }
+
+    const ratingReviews = await findRatingReviews(appId);
+
+    return res.json({
+      success:true,
+      data:ratingReviews
+    })
+
+  } catch (error) {
+    return res.json({
+      success:false,
+      message:error.message
+    })
+  }
+}
+
+exports.UpdateReviewById = async(req,res)=>{
+  try {
+    const {rating,review} = req.body;
+    const reviewId = req.params.id;
+
+    if(!rating || !review){
+      return res.json({
+        success:false,
+        message:"all fields are required"
+      })
+    }
+
+    const reviewById= await findReviewById(reviewId);
+
+    if(!reviewById){
+      return res.json({
+        success:false,
+        message:"review not found"
+      })
+    }
+
+    await reviewById.update({rating:rating,review:review});
+
+    const updatedReview = await findReviewById(reviewId);
+
+
+    return res.json({
+      success:true,
+      data:updatedReview
+    })
+
+  } catch (error) {
+    return res.json({
+      success:false,
+      message:error.message
+    })
+  }
+}

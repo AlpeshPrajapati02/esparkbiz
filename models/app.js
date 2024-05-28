@@ -16,6 +16,8 @@ module.exports = (sequelize, DataTypes) => {
       app.hasMany(models.app_has_category,{foreignKey:'app_id'})
       app.hasMany(models.download,{foreignKey:'app_id'})
       app.hasMany(models.payment,{foreignKey:'app_id'})
+      app.hasMany(models.rating_and_review,{foreignKey:'app_id'})
+
     }
   }
   app.init(

@@ -35,3 +35,13 @@ exports.passportConfig = (passport) => {
   );
 };
 
+exports.isAdmin = (req, res, next) => {
+  if (req.user.role_id !== 3) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access forbidden: Admins only'
+    });
+  }
+  next();
+};
+
